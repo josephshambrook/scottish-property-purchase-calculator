@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scottish Property Purchase Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scottish Property Purchase Calculator</h1>
+            <p class="subtitle">Calculate mortgage affordability and cash requirements for your Scottish property purchase</p>
+            <button class="reset-button" id="js-resetButton">Reset to Defaults</button>
+        </header>
+
+        <div class="calculator-grid">
+            <!-- Property Being Purchased -->
+            <div class="card">
+                <h2>Property Being Purchased</h2>
+                <div class="form-group">
+                    <label for="js-homeReportValue">Home Report Value</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-homeReportValue" step="1000" value="250000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-bidAmount">Bid Amount</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-bidAmount" step="1000" value="265000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-buyingSolicitorFeesUpfront">Buying Solicitor Fees (Upfront)</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-buyingSolicitorFeesUpfront" step="100" value="500">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-buyingSolicitorFeesAtSale">Buying Solicitor Fees (At Sale)</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-buyingSolicitorFeesAtSale" step="100" value="1500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Property Being Sold -->
+            <div class="card">
+                <h2>Existing Property Being Sold</h2>
+                <div class="form-group">
+                    <label for="js-expectedSaleValue">Expected Sale Value</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-expectedSaleValue" step="1000" value="180000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-existingMortgage">Existing Mortgage Balance</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-existingMortgage" step="1000" value="120000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-sellingSolicitorFees">Selling Solicitor Fees</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-sellingSolicitorFees" step="100" value="1500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Funds -->
+            <div class="card">
+                <h2>Available Funds</h2>
+                <div class="form-group">
+                    <label for="js-cashAvailable">Cash Available</label>
+                    <div class="input-prefix">
+                        <input type="number" id="js-cashAvailable" step="1000" value="20000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Mortgage Parameters -->
+            <div class="card">
+                <h2>New Mortgage Parameters</h2>
+                <div class="form-group">
+                    <label for="js-interestRate">Interest Rate</label>
+                    <div class="input-suffix" data-suffix="%">
+                        <input type="number" id="js-interestRate" step="0.01" value="4.5">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-mortgageTerm">Mortgage Term</label>
+                    <div class="input-suffix" data-suffix="years">
+                        <input type="number" id="js-mortgageTerm" step="1" value="25">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="js-depositPercentage">Desired Deposit Percentage</label>
+                    <div class="input-suffix" data-suffix="%">
+                        <input type="number" id="js-depositPercentage" step="1" value="20">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Type -->
+            <div class="card">
+                <h2>Transaction Type</h2>
+                <div class="form-group">
+                    <label>Additional Dwelling Supplement (ADS)</label>
+                    <div class="toggle-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="js-adsApplicable">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">
+                            <span id="js-adsLabel">Not Applicable (Buying After Selling)</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="info-note">
+                    ADS is 6% of the entire bid amount, payable upfront when buying before selling. It can be reclaimed if your previous property is sold within 18 months.
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card results-section">
+                <h2>Results</h2>
+
+                <div class="section-heading">Primary Outputs</div>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="result-label">Monthly Mortgage Payment</div>
+                        <div class="result-value" id="js-monthlyPayment">£0.00</div>
+                        <div class="result-description" id="js-monthlyPaymentDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Overbid Amount</div>
+                        <div class="result-value" id="js-overbidAmount">£0.00</div>
+                        <div class="result-description" id="js-overbidAmountDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Cash Needed at Purchase</div>
+                        <div class="result-value" id="js-cashNeededAtPurchase">£0.00</div>
+                        <div class="result-description" id="js-cashNeededAtPurchaseDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Cash Shortfall (If Buying Before Selling)</div>
+                        <div class="result-value" id="js-cashShortfall">£0.00</div>
+                        <div class="result-description" id="js-cashShortfallDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Remaining Cash After Purchase</div>
+                        <div class="result-value" id="js-remainingCash">£0.00</div>
+                        <div class="result-description" id="js-remainingCashDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Total Amount Borrowed</div>
+                        <div class="result-value" id="js-mortgageAmount">£0.00</div>
+                        <div class="result-description" id="js-mortgageAmountDesc"></div>
+                    </div>
+                </div>
+
+                <div class="section-heading">LBTT Breakdown</div>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="result-label">Standard LBTT</div>
+                        <div class="result-value" id="js-standardLbtt">£0.00</div>
+                        <div class="result-description" id="js-standardLbttDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Additional Dwelling Supplement</div>
+                        <div class="result-value" id="js-adsAmount">£0.00</div>
+                        <div class="result-description" id="js-adsAmountDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Total LBTT</div>
+                        <div class="result-value" id="js-totalLbtt">£0.00</div>
+                        <div class="result-description" id="js-totalLbttDesc"></div>
+                    </div>
+                </div>
+
+                <div class="section-heading">Supporting Information</div>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="result-label">Equity from House Sale</div>
+                        <div class="result-value" id="js-equityFromSale">£0.00</div>
+                        <div class="result-description" id="js-equityFromSaleDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Total Funds After Sale</div>
+                        <div class="result-value" id="js-totalFundsAfterSale">£0.00</div>
+                        <div class="result-description" id="js-totalFundsAfterSaleDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Required Deposit</div>
+                        <div class="result-value" id="js-requiredDeposit">£0.00</div>
+                        <div class="result-description" id="js-requiredDepositDesc"></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">LTV Percentage</div>
+                        <div class="result-value" id="js-ltvPercentage">0.00%</div>
+                        <div class="result-description" id="js-ltvPercentageDesc"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

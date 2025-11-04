@@ -1,0 +1,16 @@
+{
+  "name": "scottish-property-purchase-calculator",
+  "version": "1.0.0",
+  "description": "Calculate mortgage affordability and cash requirements for Scottish property purchases",
+  "main": "index.html",
+  "scripts": {
+    "dev": "bun --hot server.ts",
+    "start": "bun run dev"
+  },
+  "keywords": ["scottish", "property", "calculator", "mortgage", "lbtt"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "^1.3.1"
+  }
+}
