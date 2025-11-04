@@ -6,7 +6,8 @@ const DEFAULT_VALUES = {
   buyingSolicitorFeesAtSale: 1500,
   expectedSaleValue: 180000,
   existingMortgage: 120000,
-  sellingSolicitorFees: 1500,
+  sellingSolicitorFeesUpfront: 500,
+  sellingSolicitorFeesAtSale: 1500,
   cashAvailable: 20000,
   interestRate: 4.5,
   mortgageTerm: 25,
@@ -40,7 +41,12 @@ function getElement(id) {
 
 // Helper function to get input value
 function getInputValue(id) {
-  return parseFloat(getElement(id).value) || 0;
+  const element = getElement(id);
+  if (!element) {
+    console.warn(`Element with id "${id}" not found`);
+    return 0;
+  }
+  return parseFloat(element.value) || 0;
 }
 
 // Helper function to set output value
@@ -102,7 +108,18 @@ function loadValues() {
   const savedData = localStorage.getItem(STORAGE_KEY);
   if (savedData) {
     try {
-      return JSON.parse(savedData);
+      const parsed = JSON.parse(savedData);
+
+      // Migrate old data format: split sellingSolicitorFees into upfront and at-sale
+      if (parsed.sellingSolicitorFees !== undefined &&
+          parsed.sellingSolicitorFeesUpfront === undefined) {
+        parsed.sellingSolicitorFeesUpfront = 500;
+        parsed.sellingSolicitorFeesAtSale = parsed.sellingSolicitorFees;
+        delete parsed.sellingSolicitorFees;
+      }
+
+      // Ensure all default values exist
+      return { ...DEFAULT_VALUES, ...parsed };
     } catch (e) {
       console.error('Error parsing saved data:', e);
       return DEFAULT_VALUES;
@@ -120,7 +137,8 @@ function saveValues() {
     buyingSolicitorFeesAtSale: getInputValue('js-buyingSolicitorFeesAtSale'),
     expectedSaleValue: getInputValue('js-expectedSaleValue'),
     existingMortgage: getInputValue('js-existingMortgage'),
-    sellingSolicitorFees: getInputValue('js-sellingSolicitorFees'),
+    sellingSolicitorFeesUpfront: getInputValue('js-sellingSolicitorFeesUpfront'),
+    sellingSolicitorFeesAtSale: getInputValue('js-sellingSolicitorFeesAtSale'),
     cashAvailable: getInputValue('js-cashAvailable'),
     interestRate: getInputValue('js-interestRate'),
     mortgageTerm: getInputValue('js-mortgageTerm'),
@@ -201,7 +219,12 @@ function calculateAll() {
   );
   const expectedSaleValue = getInputValue('js-expectedSaleValue');
   const existingMortgage = getInputValue('js-existingMortgage');
-  const sellingSolicitorFees = getInputValue('js-sellingSolicitorFees');
+  const sellingSolicitorFeesUpfront = getInputValue(
+    'js-sellingSolicitorFeesUpfront'
+  );
+  const sellingSolicitorFeesAtSale = getInputValue(
+    'js-sellingSolicitorFeesAtSale'
+  );
   const cashAvailable = getInputValue('js-cashAvailable');
   const interestRate = getInputValue('js-interestRate');
   const mortgageTerm = getInputValue('js-mortgageTerm');
@@ -212,13 +235,13 @@ function calculateAll() {
   // 2. Calculate LBTT (paid at purchase completion)
   const lbtt = calculateLBTT(bidAmount);
 
-  // 3. Calculate cash used before purchase (overbid + upfront fees)
+  // 3. Calculate cash used before purchase (overbid + all upfront fees)
   const cashUsedBeforePurchase =
-    Math.max(0, overbidAmount) + buyingSolicitorFeesUpfront;
+    Math.max(0, overbidAmount) + buyingSolicitorFeesUpfront + sellingSolicitorFeesUpfront;
 
-  // 4. Calculate equity from old house sale (after selling costs)
+  // 4. Calculate equity from old house sale (after selling costs at sale)
   const equityFromSale =
-    expectedSaleValue - existingMortgage - sellingSolicitorFees;
+    expectedSaleValue - existingMortgage - sellingSolicitorFeesAtSale;
 
   // 5. Calculate total funds available after sale
   const totalFundsAfterSale = cashAvailable + equityFromSale;
@@ -270,7 +293,7 @@ function calculateAll() {
     setOutput(
       'js-cashUsedBeforePurchase',
       formatCurrency(cashUsedBeforePurchase),
-      `${formatCurrency(Math.max(0, overbidAmount))} (overbid) + ${formatCurrency(buyingSolicitorFeesUpfront)} (upfront fees)`
+      `${formatCurrency(Math.max(0, overbidAmount))} (overbid) + ${formatCurrency(buyingSolicitorFeesUpfront)} (buying fees upfront) + ${formatCurrency(sellingSolicitorFeesUpfront)} (selling fees upfront)`
     );
 
     setOutput(
@@ -288,7 +311,7 @@ function calculateAll() {
     setOutput(
       'js-equityFromSale',
       formatCurrency(equityFromSale),
-      `${formatCurrency(expectedSaleValue)} (sale value) - ${formatCurrency(existingMortgage)} (mortgage) - ${formatCurrency(sellingSolicitorFees)} (selling fees)`
+      `${formatCurrency(expectedSaleValue)} (sale value) - ${formatCurrency(existingMortgage)} (mortgage) - ${formatCurrency(sellingSolicitorFeesAtSale)} (selling fees at sale)`
     );
 
     setOutput(
