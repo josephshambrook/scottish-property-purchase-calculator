@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(bun install:*)"
+      "Bash(bun install:*)",
+      "Bash(bun run format:*)"
     ],
     "deny": [],
     "ask": []
