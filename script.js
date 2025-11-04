@@ -13,10 +13,42 @@ const DEFAULT_VALUES = {
 };
 
 const STORAGE_KEY = 'scottishPropertyCalculator';
+const THEME_STORAGE_KEY = 'scottishPropertyCalculator_theme';
 
-// Helper function to format currency
+// Cache DOM elements
+const DOM_ELEMENTS = {};
+
+// Helper function to format currency (optimized with Intl.NumberFormat)
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  style: 'currency',
+  currency: 'GBP',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 function formatCurrency(value) {
-  return `£${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  return currencyFormatter.format(value);
+}
+
+// Helper function to get or cache DOM element
+function getElement(id) {
+  if (!DOM_ELEMENTS[id]) {
+    DOM_ELEMENTS[id] = document.getElementById(id);
+  }
+  return DOM_ELEMENTS[id];
+}
+
+// Helper function to get input value
+function getInputValue(id) {
+  return parseFloat(getElement(id).value) || 0;
+}
+
+// Helper function to set output value
+function setOutput(id, value, description) {
+  getElement(id).textContent = value;
+  if (description) {
+    getElement(`${id}Desc`).textContent = description;
+  }
 }
 
 // Helper function to calculate LBTT
@@ -82,50 +114,28 @@ function loadValues() {
 // Save values to localStorage
 function saveValues() {
   const values = {
-    homeReportValue:
-      parseFloat(document.getElementById('js-homeReportValue').value) || 0,
-    bidAmount: parseFloat(document.getElementById('js-bidAmount').value) || 0,
-    buyingSolicitorFeesUpfront:
-      parseFloat(
-        document.getElementById('js-buyingSolicitorFeesUpfront').value
-      ) || 0,
-    buyingSolicitorFeesAtSale:
-      parseFloat(
-        document.getElementById('js-buyingSolicitorFeesAtSale').value
-      ) || 0,
-    expectedSaleValue:
-      parseFloat(document.getElementById('js-expectedSaleValue').value) || 0,
-    existingMortgage:
-      parseFloat(document.getElementById('js-existingMortgage').value) || 0,
-    sellingSolicitorFees:
-      parseFloat(document.getElementById('js-sellingSolicitorFees').value) || 0,
-    cashAvailable:
-      parseFloat(document.getElementById('js-cashAvailable').value) || 0,
-    interestRate:
-      parseFloat(document.getElementById('js-interestRate').value) || 0,
-    mortgageTerm:
-      parseFloat(document.getElementById('js-mortgageTerm').value) || 0,
+    homeReportValue: getInputValue('js-homeReportValue'),
+    bidAmount: getInputValue('js-bidAmount'),
+    buyingSolicitorFeesUpfront: getInputValue('js-buyingSolicitorFeesUpfront'),
+    buyingSolicitorFeesAtSale: getInputValue('js-buyingSolicitorFeesAtSale'),
+    expectedSaleValue: getInputValue('js-expectedSaleValue'),
+    existingMortgage: getInputValue('js-existingMortgage'),
+    sellingSolicitorFees: getInputValue('js-sellingSolicitorFees'),
+    cashAvailable: getInputValue('js-cashAvailable'),
+    interestRate: getInputValue('js-interestRate'),
+    mortgageTerm: getInputValue('js-mortgageTerm'),
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
 }
 
 // Populate form with values
 function populateForm(values) {
-  document.getElementById('js-homeReportValue').value = values.homeReportValue;
-  document.getElementById('js-bidAmount').value = values.bidAmount;
-  document.getElementById('js-buyingSolicitorFeesUpfront').value =
-    values.buyingSolicitorFeesUpfront;
-  document.getElementById('js-buyingSolicitorFeesAtSale').value =
-    values.buyingSolicitorFeesAtSale;
-  document.getElementById('js-expectedSaleValue').value =
-    values.expectedSaleValue;
-  document.getElementById('js-existingMortgage').value =
-    values.existingMortgage;
-  document.getElementById('js-sellingSolicitorFees').value =
-    values.sellingSolicitorFees;
-  document.getElementById('js-cashAvailable').value = values.cashAvailable;
-  document.getElementById('js-interestRate').value = values.interestRate;
-  document.getElementById('js-mortgageTerm').value = values.mortgageTerm;
+  Object.entries(values).forEach(([key, value]) => {
+    const element = getElement(`js-${key}`);
+    if (element) {
+      element.value = value;
+    }
+  });
 }
 
 // Reset to default values
@@ -135,32 +145,66 @@ function resetToDefaults() {
   calculateAll();
 }
 
+// Dark mode functions
+function loadTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+
+  // If user has a saved preference, use that
+  if (savedTheme) {
+    return savedTheme;
+  }
+
+  // Otherwise, detect browser/system preference
+  if (
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  ) {
+    return 'dark';
+  }
+
+  // Default to light theme
+  return 'light';
+}
+
+function applyTheme(theme, savePreference = false) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    getElement('js-themeIcon').textContent = '☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    getElement('js-themeIcon').textContent = '🌙';
+  }
+
+  // Only save to localStorage if explicitly requested (e.g., user clicked toggle)
+  if (savePreference) {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  // Save preference when user manually toggles
+  applyTheme(newTheme, true);
+}
+
 // Main calculation function
 function calculateAll() {
-  // Get all input values
-  const homeReportValue =
-    parseFloat(document.getElementById('js-homeReportValue').value) || 0;
-  const bidAmount =
-    parseFloat(document.getElementById('js-bidAmount').value) || 0;
-  const buyingSolicitorFeesUpfront =
-    parseFloat(
-      document.getElementById('js-buyingSolicitorFeesUpfront').value
-    ) || 0;
-  const buyingSolicitorFeesAtSale =
-    parseFloat(document.getElementById('js-buyingSolicitorFeesAtSale').value) ||
-    0;
-  const expectedSaleValue =
-    parseFloat(document.getElementById('js-expectedSaleValue').value) || 0;
-  const existingMortgage =
-    parseFloat(document.getElementById('js-existingMortgage').value) || 0;
-  const sellingSolicitorFees =
-    parseFloat(document.getElementById('js-sellingSolicitorFees').value) || 0;
-  const cashAvailable =
-    parseFloat(document.getElementById('js-cashAvailable').value) || 0;
-  const interestRate =
-    parseFloat(document.getElementById('js-interestRate').value) || 0;
-  const mortgageTerm =
-    parseFloat(document.getElementById('js-mortgageTerm').value) || 0;
+  // Get all input values (optimized with helper function)
+  const homeReportValue = getInputValue('js-homeReportValue');
+  const bidAmount = getInputValue('js-bidAmount');
+  const buyingSolicitorFeesUpfront = getInputValue(
+    'js-buyingSolicitorFeesUpfront'
+  );
+  const buyingSolicitorFeesAtSale = getInputValue(
+    'js-buyingSolicitorFeesAtSale'
+  );
+  const expectedSaleValue = getInputValue('js-expectedSaleValue');
+  const existingMortgage = getInputValue('js-existingMortgage');
+  const sellingSolicitorFees = getInputValue('js-sellingSolicitorFees');
+  const cashAvailable = getInputValue('js-cashAvailable');
+  const interestRate = getInputValue('js-interestRate');
+  const mortgageTerm = getInputValue('js-mortgageTerm');
 
   // 1. Calculate overbid
   const overbidAmount = bidAmount - homeReportValue;
@@ -209,51 +253,62 @@ function calculateAll() {
     lbtt -
     buyingSolicitorFeesAtSale;
 
-  // Update all output fields
-  document.getElementById('js-monthlyPayment').textContent =
-    formatCurrency(monthlyPayment);
-  document.getElementById('js-monthlyPaymentDesc').textContent =
-    `Based on mortgage of ${formatCurrency(mortgageAmount)} at ${interestRate}% over ${mortgageTerm} years`;
+  // Batch DOM updates using requestAnimationFrame to minimize reflows
+  requestAnimationFrame(() => {
+    setOutput(
+      'js-monthlyPayment',
+      formatCurrency(monthlyPayment),
+      `Based on mortgage of ${formatCurrency(mortgageAmount)} at ${interestRate}% over ${mortgageTerm} years`
+    );
 
-  document.getElementById('js-overbidAmount').textContent = formatCurrency(
-    Math.max(0, overbidAmount)
-  );
-  document.getElementById('js-overbidAmountDesc').textContent =
-    `${formatCurrency(bidAmount)} (bid) - ${formatCurrency(homeReportValue)} (home report)`;
+    setOutput(
+      'js-overbidAmount',
+      formatCurrency(Math.max(0, overbidAmount)),
+      `${formatCurrency(bidAmount)} (bid) - ${formatCurrency(homeReportValue)} (home report)`
+    );
 
-  document.getElementById('js-cashUsedBeforePurchase').textContent =
-    formatCurrency(cashUsedBeforePurchase);
-  document.getElementById('js-cashUsedBeforePurchaseDesc').textContent =
-    `${formatCurrency(Math.max(0, overbidAmount))} (overbid) + ${formatCurrency(buyingSolicitorFeesUpfront)} (upfront fees)`;
+    setOutput(
+      'js-cashUsedBeforePurchase',
+      formatCurrency(cashUsedBeforePurchase),
+      `${formatCurrency(Math.max(0, overbidAmount))} (overbid) + ${formatCurrency(buyingSolicitorFeesUpfront)} (upfront fees)`
+    );
 
-  document.getElementById('js-mortgageAmount').textContent =
-    formatCurrency(mortgageAmount);
-  document.getElementById('js-mortgageAmountDesc').textContent =
-    `${formatCurrency(homeReportValue)} (home report) - ${formatCurrency(requiredDeposit)} (deposit)`;
+    setOutput(
+      'js-mortgageAmount',
+      formatCurrency(mortgageAmount),
+      `${formatCurrency(homeReportValue)} (home report) - ${formatCurrency(requiredDeposit)} (deposit)`
+    );
 
-  document.getElementById('js-lbtt').textContent = formatCurrency(lbtt);
-  document.getElementById('js-lbttDesc').textContent =
-    `Calculated on ${formatCurrency(bidAmount)} using Scottish LBTT bands`;
+    setOutput(
+      'js-lbtt',
+      formatCurrency(lbtt),
+      `Calculated on ${formatCurrency(bidAmount)} using Scottish LBTT bands`
+    );
 
-  document.getElementById('js-equityFromSale').textContent =
-    formatCurrency(equityFromSale);
-  document.getElementById('js-equityFromSaleDesc').textContent =
-    `${formatCurrency(expectedSaleValue)} (sale value) - ${formatCurrency(existingMortgage)} (mortgage) - ${formatCurrency(sellingSolicitorFees)} (selling fees)`;
+    setOutput(
+      'js-equityFromSale',
+      formatCurrency(equityFromSale),
+      `${formatCurrency(expectedSaleValue)} (sale value) - ${formatCurrency(existingMortgage)} (mortgage) - ${formatCurrency(sellingSolicitorFees)} (selling fees)`
+    );
 
-  document.getElementById('js-totalFundsAfterSale').textContent =
-    formatCurrency(totalFundsAfterSale);
-  document.getElementById('js-totalFundsAfterSaleDesc').textContent =
-    `${formatCurrency(cashAvailable)} (cash) + ${formatCurrency(equityFromSale)} (equity from sale)`;
+    setOutput(
+      'js-totalFundsAfterSale',
+      formatCurrency(totalFundsAfterSale),
+      `${formatCurrency(cashAvailable)} (cash) + ${formatCurrency(equityFromSale)} (equity from sale)`
+    );
 
-  document.getElementById('js-requiredDeposit').textContent =
-    formatCurrency(requiredDeposit);
-  document.getElementById('js-requiredDepositDesc').textContent =
-    `${formatCurrency(totalFundsAfterSale)} (funds) - ${formatCurrency(cashUsedBeforePurchase)} (used before) - ${formatCurrency(lbtt)} (LBTT) - ${formatCurrency(buyingSolicitorFeesAtSale)} (fees)`;
+    setOutput(
+      'js-requiredDeposit',
+      formatCurrency(requiredDeposit),
+      `${formatCurrency(totalFundsAfterSale)} (funds) - ${formatCurrency(cashUsedBeforePurchase)} (used before) - ${formatCurrency(lbtt)} (LBTT) - ${formatCurrency(buyingSolicitorFeesAtSale)} (fees)`
+    );
 
-  document.getElementById('js-ltvPercentage').textContent =
-    `${ltvPercentage.toFixed(2)}%`;
-  document.getElementById('js-ltvPercentageDesc').textContent =
-    `${formatCurrency(mortgageAmount)} (mortgage) ÷ ${formatCurrency(homeReportValue)} (home report) × 100`;
+    setOutput(
+      'js-ltvPercentage',
+      `${ltvPercentage.toFixed(2)}%`,
+      `${formatCurrency(mortgageAmount)} (mortgage) ÷ ${formatCurrency(homeReportValue)} (home report) × 100`
+    );
+  });
 
   // Save values after calculation
   saveValues();
@@ -261,20 +316,44 @@ function calculateAll() {
 
 // Initialize the calculator
 function init() {
+  // Load and apply saved theme
+  const savedTheme = loadTheme();
+  applyTheme(savedTheme);
+
+  // Listen for system theme changes (only if user hasn't set a preference)
+  if (window.matchMedia) {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleThemeChange = (e) => {
+      // Only apply system preference if user hasn't manually set a theme
+      if (!localStorage.getItem(THEME_STORAGE_KEY)) {
+        applyTheme(e.matches ? 'dark' : 'light', false);
+      }
+    };
+
+    // Use both addEventListener (modern) and addListener (older browsers)
+    if (darkModeQuery.addEventListener) {
+      darkModeQuery.addEventListener('change', handleThemeChange);
+    } else if (darkModeQuery.addListener) {
+      darkModeQuery.addListener(handleThemeChange);
+    }
+  }
+
   // Load saved values or defaults
   const values = loadValues();
   populateForm(values);
 
-  // Add event listeners to all inputs
-  const inputs = document.querySelectorAll('input');
-  inputs.forEach((input) => {
-    input.addEventListener('input', calculateAll);
+  // Use event delegation for input listeners (more efficient)
+  document.body.addEventListener('input', (event) => {
+    if (event.target.tagName === 'INPUT') {
+      calculateAll();
+    }
   });
 
+  // Add theme toggle button listener
+  getElement('js-themeToggle').addEventListener('click', toggleTheme);
+
   // Add reset button listener
-  document
-    .getElementById('js-resetButton')
-    .addEventListener('click', resetToDefaults);
+  getElement('js-resetButton').addEventListener('click', resetToDefaults);
 
   // Initial calculation
   calculateAll();

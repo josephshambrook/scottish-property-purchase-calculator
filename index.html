@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scottish Property Purchase Calculator</title>
     <link rel="stylesheet" href="styles.css" />
+    <script>
+      // Apply theme immediately to prevent flash
+      (function () {
+        const THEME_STORAGE_KEY = 'scottishPropertyCalculator_theme';
+        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+
+        let theme = 'light';
+
+        if (savedTheme) {
+          theme = savedTheme;
+        } else if (
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches
+        ) {
+          theme = 'dark';
+        }
+
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div class="container">
@@ -14,9 +36,19 @@
           Calculate mortgage affordability and cash requirements for your
           Scottish property purchase
         </p>
-        <button type="button" class="reset-button" id="js-resetButton">
-          Reset to Defaults
-        </button>
+        <div class="header-buttons">
+          <button
+            type="button"
+            class="theme-toggle"
+            id="js-themeToggle"
+            aria-label="Toggle dark mode"
+          >
+            <span id="js-themeIcon">🌙</span>
+          </button>
+          <button type="button" class="reset-button" id="js-resetButton">
+            Reset to Defaults
+          </button>
+        </div>
       </header>
 
       <div class="calculator-grid">

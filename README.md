@@ -63,19 +63,23 @@ The calculator walks through the complete property purchase journey:
 ### Inputs
 
 **Property Being Purchased:**
+
 - Home Report Value: The official valuation
 - Bid Amount: What you're offering to pay
 - Buying Solicitor Fees: Split into upfront and completion costs
 
 **Existing Property Being Sold:**
+
 - Expected Sale Value
 - Existing Mortgage Balance
 - Selling Solicitor Fees
 
 **Available Funds:**
+
 - Cash Available: Your savings
 
 **New Mortgage Parameters:**
+
 - Interest Rate (%)
 - Mortgage Term (years)
 
