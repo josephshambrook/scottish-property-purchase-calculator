@@ -1,10 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(npm install:*)",
-      "Bash(bun install:*)",
-      "Bash(bun run format:*)"
-    ],
+    "allow": ["Bash(bun install:*)", "Bash(bun run format:*)", "WebSearch"],
     "deny": [],
     "ask": []
   }
