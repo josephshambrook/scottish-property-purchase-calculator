@@ -268,7 +268,11 @@ function calculateAll() {
   const ltvPercentage =
     homeReportValue > 0 ? (mortgageAmount / homeReportValue) * 100 : 0;
 
-  // 10. Calculate remaining cash after purchase (should be 0 if using all available)
+  // 10. Calculate overbid percentage
+  const overbidPercentage =
+    homeReportValue > 0 ? ((bidAmount - homeReportValue) / homeReportValue) * 100 : 0;
+
+  // 11. Calculate remaining cash after purchase (should be 0 if using all available)
   const remainingCash =
     totalFundsAfterSale -
     cashUsedBeforePurchase -
@@ -330,6 +334,12 @@ function calculateAll() {
       'js-ltvPercentage',
       `${ltvPercentage.toFixed(2)}%`,
       `${formatCurrency(mortgageAmount)} (mortgage) ÷ ${formatCurrency(homeReportValue)} (home report) × 100`
+    );
+
+    setOutput(
+      'js-overbidPercentage',
+      `${overbidPercentage.toFixed(2)}%`,
+      `${formatCurrency(bidAmount)} (bid) - ${formatCurrency(homeReportValue)} (home report) ÷ ${formatCurrency(homeReportValue)} (home report) × 100`
     );
   });
 
