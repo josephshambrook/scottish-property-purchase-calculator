@@ -185,12 +185,34 @@ function loadTheme() {
 }
 
 function applyTheme(theme, savePreference = false) {
-  if (theme === 'dark') {
+  let effectiveTheme = theme;
+
+  // If theme is 'auto', determine the effective theme from system preference
+  if (theme === 'auto') {
+    if (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
+      effectiveTheme = 'dark';
+    } else {
+      effectiveTheme = 'light';
+    }
+  }
+
+  // Apply the effective theme
+  if (effectiveTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    getElement('js-themeIcon').textContent = '☀️';
   } else {
     document.documentElement.removeAttribute('data-theme');
+  }
+
+  // Update icon based on the selected mode (not effective theme)
+  if (theme === 'auto') {
+    getElement('js-themeIcon').textContent = '🌓';
+  } else if (theme === 'dark') {
     getElement('js-themeIcon').textContent = '🌙';
+  } else {
+    getElement('js-themeIcon').textContent = '☀️';
   }
 
   // Only save to localStorage if explicitly requested (e.g., user clicked toggle)
@@ -200,8 +222,19 @@ function applyTheme(theme, savePreference = false) {
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  // Get the current saved theme preference (not the effective theme)
+  const currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+
+  // Cycle through: light -> dark -> auto -> light
+  let newTheme;
+  if (currentTheme === 'light') {
+    newTheme = 'dark';
+  } else if (currentTheme === 'dark') {
+    newTheme = 'auto';
+  } else {
+    newTheme = 'light';
+  }
+
   // Save preference when user manually toggles
   applyTheme(newTheme, true);
 }
@@ -353,13 +386,14 @@ function init() {
   const savedTheme = loadTheme();
   applyTheme(savedTheme);
 
-  // Listen for system theme changes (only if user hasn't set a preference)
+  // Listen for system theme changes
   if (window.matchMedia) {
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleThemeChange = (e) => {
-      // Only apply system preference if user hasn't manually set a theme
-      if (!localStorage.getItem(THEME_STORAGE_KEY)) {
-        applyTheme(e.matches ? 'dark' : 'light', false);
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      // Only apply system preference if user has 'auto' mode or hasn't set a preference
+      if (!savedTheme || savedTheme === 'auto') {
+        applyTheme(savedTheme || 'auto', false);
       }
     };
 

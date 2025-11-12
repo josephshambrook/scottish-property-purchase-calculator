@@ -18,7 +18,19 @@
         let theme = 'light';
 
         if (savedTheme) {
-          theme = savedTheme;
+          // If saved theme is 'auto', determine from system preference
+          if (savedTheme === 'auto') {
+            if (
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches
+            ) {
+              theme = 'dark';
+            } else {
+              theme = 'light';
+            }
+          } else {
+            theme = savedTheme;
+          }
         } else if (
           window.matchMedia &&
           window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -45,7 +57,7 @@
             type="button"
             class="theme-toggle"
             id="js-themeToggle"
-            aria-label="Toggle dark mode"
+            aria-label="Toggle theme mode (light/dark/auto)"
           >
             <span id="js-themeIcon">🌙</span>
           </button>
