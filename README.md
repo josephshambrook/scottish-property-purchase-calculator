@@ -10,7 +10,7 @@ A web-based calculator to help you understand mortgage affordability and cash re
 - **Chain Purchase Support**: Calculates equity from selling an existing property and how it affects your new purchase
 - **Mortgage Affordability**: Shows monthly payments based on interest rate and term
 - **LTV Calculation**: Displays your loan-to-value percentage
-- **Auto-save**: Your inputs are automatically saved to localStorage for convenience
+- **Shareable URLs**: Your inputs are automatically saved to the URL query string, making it easy to share or bookmark specific scenarios
 - **Real-time Updates**: All calculations update instantly as you change values
 
 ## Installation
@@ -126,7 +126,7 @@ scottish-property-purchase-calculator/
 
 - **Runtime**: Bun
 - **Languages**: HTML, CSS, JavaScript (ES6+)
-- **Storage**: localStorage for persisting user inputs
+- **Storage**: URL query strings for shareable state (theme preference stored in localStorage)
 - **Build**: Bun's built-in bundler
 
 ## License

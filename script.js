@@ -16,6 +16,26 @@ const DEFAULT_VALUES = {
 const STORAGE_KEY = 'scottishPropertyCalculator';
 const THEME_STORAGE_KEY = 'scottishPropertyCalculator_theme';
 
+// Map full property names to short URL parameter names
+const PARAM_MAP = {
+  homeReportValue: 'hrv',
+  bidAmount: 'bid',
+  buyingSolicitorFeesUpfront: 'bsfu',
+  buyingSolicitorFeesAtSale: 'bsfs',
+  expectedSaleValue: 'esv',
+  existingMortgage: 'em',
+  sellingSolicitorFeesUpfront: 'ssfu',
+  sellingSolicitorFeesAtSale: 'ssfs',
+  cashAvailable: 'cash',
+  interestRate: 'ir',
+  mortgageTerm: 'mt',
+};
+
+// Reverse map for reading URL parameters
+const REVERSE_PARAM_MAP = Object.fromEntries(
+  Object.entries(PARAM_MAP).map(([key, value]) => [value, key])
+);
+
 // Cache DOM elements
 const DOM_ELEMENTS = {};
 
@@ -103,16 +123,39 @@ function calculateMonthlyPayment(principal, annualRate, years) {
   return monthlyPayment;
 }
 
-// Load values from localStorage or use defaults
+// Load values from query string, localStorage (for migration), or use defaults
 function loadValues() {
+  const params = new URLSearchParams(window.location.search);
+  const values = {};
+  let hasQueryParams = false;
+
+  // Try to read from query string first
+  for (const [shortName, fullName] of Object.entries(REVERSE_PARAM_MAP)) {
+    if (params.has(shortName)) {
+      hasQueryParams = true;
+      const value = parseFloat(params.get(shortName));
+      if (!isNaN(value)) {
+        values[fullName] = value;
+      }
+    }
+  }
+
+  // If we have query params, use them (merged with defaults)
+  if (hasQueryParams) {
+    return { ...DEFAULT_VALUES, ...values };
+  }
+
+  // Otherwise, check localStorage for migration
   const savedData = localStorage.getItem(STORAGE_KEY);
   if (savedData) {
     try {
       const parsed = JSON.parse(savedData);
 
       // Migrate old data format: split sellingSolicitorFees into upfront and at-sale
-      if (parsed.sellingSolicitorFees !== undefined &&
-          parsed.sellingSolicitorFeesUpfront === undefined) {
+      if (
+        parsed.sellingSolicitorFees !== undefined &&
+        parsed.sellingSolicitorFeesUpfront === undefined
+      ) {
         parsed.sellingSolicitorFeesUpfront = 500;
         parsed.sellingSolicitorFeesAtSale = parsed.sellingSolicitorFees;
         delete parsed.sellingSolicitorFees;
@@ -125,10 +168,11 @@ function loadValues() {
       return DEFAULT_VALUES;
     }
   }
+
   return DEFAULT_VALUES;
 }
 
-// Save values to localStorage
+// Save values to query string
 function saveValues() {
   const values = {
     homeReportValue: getInputValue('js-homeReportValue'),
@@ -137,13 +181,31 @@ function saveValues() {
     buyingSolicitorFeesAtSale: getInputValue('js-buyingSolicitorFeesAtSale'),
     expectedSaleValue: getInputValue('js-expectedSaleValue'),
     existingMortgage: getInputValue('js-existingMortgage'),
-    sellingSolicitorFeesUpfront: getInputValue('js-sellingSolicitorFeesUpfront'),
+    sellingSolicitorFeesUpfront: getInputValue(
+      'js-sellingSolicitorFeesUpfront'
+    ),
     sellingSolicitorFeesAtSale: getInputValue('js-sellingSolicitorFeesAtSale'),
     cashAvailable: getInputValue('js-cashAvailable'),
     interestRate: getInputValue('js-interestRate'),
     mortgageTerm: getInputValue('js-mortgageTerm'),
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+
+  // Build query string with short parameter names
+  const params = new URLSearchParams();
+  for (const [fullName, value] of Object.entries(values)) {
+    const shortName = PARAM_MAP[fullName];
+    if (shortName && value !== DEFAULT_VALUES[fullName]) {
+      // Only include values that differ from defaults to keep URL shorter
+      params.set(shortName, value);
+    }
+  }
+
+  // Update URL without reloading the page or adding to history
+  const newUrl = params.toString()
+    ? `${window.location.pathname}?${params.toString()}`
+    : window.location.pathname;
+
+  window.history.replaceState({}, '', newUrl);
 }
 
 // Populate form with values
@@ -158,9 +220,30 @@ function populateForm(values) {
 
 // Reset to default values
 function resetToDefaults() {
+  // Clear query string
+  window.history.replaceState({}, '', window.location.pathname);
   localStorage.removeItem(STORAGE_KEY);
   populateForm(DEFAULT_VALUES);
   calculateAll();
+}
+
+// Migrate data from localStorage to query string (one-time migration)
+function migrateFromLocalStorage() {
+  const params = new URLSearchParams(window.location.search);
+
+  // Only migrate if there are no query params but localStorage has data
+  if (params.toString() === '') {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        // Clear localStorage after reading it
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('Migrated data from localStorage to query string');
+      } catch (e) {
+        console.error('Error during migration:', e);
+      }
+    }
+  }
 }
 
 // Dark mode functions
@@ -270,7 +353,9 @@ function calculateAll() {
 
   // 3. Calculate cash used before purchase (overbid + all upfront fees)
   const cashUsedBeforePurchase =
-    Math.max(0, overbidAmount) + buyingSolicitorFeesUpfront + sellingSolicitorFeesUpfront;
+    Math.max(0, overbidAmount) +
+    buyingSolicitorFeesUpfront +
+    sellingSolicitorFeesUpfront;
 
   // 4. Calculate equity from old house sale (after selling costs at sale)
   const equityFromSale =
@@ -303,7 +388,9 @@ function calculateAll() {
 
   // 10. Calculate overbid percentage
   const overbidPercentage =
-    homeReportValue > 0 ? ((bidAmount - homeReportValue) / homeReportValue) * 100 : 0;
+    homeReportValue > 0
+      ? ((bidAmount - homeReportValue) / homeReportValue) * 100
+      : 0;
 
   // 11. Calculate remaining cash after purchase (should be 0 if using all available)
   const remainingCash =
@@ -382,6 +469,9 @@ function calculateAll() {
 
 // Initialize the calculator
 function init() {
+  // Migrate data from localStorage to query string if needed
+  migrateFromLocalStorage();
+
   // Load and apply saved theme
   const savedTheme = loadTheme();
   applyTheme(savedTheme);

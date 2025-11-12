@@ -201,13 +201,20 @@
                 id="js-interestRate"
                 step="0.01"
                 value="4.5"
+                min="0"
               />
             </div>
           </div>
           <div class="form-group">
             <label for="js-mortgageTerm">Mortgage Term</label>
             <div class="input-suffix" data-suffix="years">
-              <input type="number" id="js-mortgageTerm" step="1" value="25" />
+              <input
+                type="number"
+                id="js-mortgageTerm"
+                step="1"
+                value="25"
+                min="0"
+              />
             </div>
           </div>
         </div>
@@ -278,7 +285,10 @@
             <div class="result-item">
               <div class="result-label">Overbid Percentage</div>
               <div class="result-value" id="js-overbidPercentage">0.00%</div>
-              <div class="result-description" id="js-overbidPercentageDesc"></div>
+              <div
+                class="result-description"
+                id="js-overbidPercentageDesc"
+              ></div>
             </div>
           </div>
         </div>
