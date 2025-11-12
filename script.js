@@ -222,7 +222,6 @@ function populateForm(values) {
 function resetToDefaults() {
   // Clear query string
   window.history.replaceState({}, '', window.location.pathname);
-  localStorage.removeItem(STORAGE_KEY);
   populateForm(DEFAULT_VALUES);
   calculateAll();
 }
@@ -236,7 +235,35 @@ function migrateFromLocalStorage() {
     const savedData = localStorage.getItem(STORAGE_KEY);
     if (savedData) {
       try {
-        // Clear localStorage after reading it
+        const parsed = JSON.parse(savedData);
+
+        // Migrate old data format: split sellingSolicitorFees into upfront and at-sale
+        if (
+          parsed.sellingSolicitorFees !== undefined &&
+          parsed.sellingSolicitorFeesUpfront === undefined
+        ) {
+          parsed.sellingSolicitorFeesUpfront = 500;
+          parsed.sellingSolicitorFeesAtSale = parsed.sellingSolicitorFees;
+          delete parsed.sellingSolicitorFees;
+        }
+
+        // Build query string from localStorage data
+        const migrationParams = new URLSearchParams();
+        for (const [fullName, value] of Object.entries(parsed)) {
+          const shortName = PARAM_MAP[fullName];
+          if (shortName && value !== DEFAULT_VALUES[fullName]) {
+            // Only include values that differ from defaults
+            migrationParams.set(shortName, value);
+          }
+        }
+
+        // Update URL with migrated data
+        if (migrationParams.toString()) {
+          const newUrl = `${window.location.pathname}?${migrationParams.toString()}`;
+          window.history.replaceState({}, '', newUrl);
+        }
+
+        // Clear localStorage after successful migration
         localStorage.removeItem(STORAGE_KEY);
         console.log('Migrated data from localStorage to query string');
       } catch (e) {
