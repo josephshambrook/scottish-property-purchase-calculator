@@ -47,7 +47,7 @@
   <body>
     <div class="container">
       <header>
-        <h1>Scottish Property Purchase Calculator</h1>
+        <h1 class="page-title">Scottish Property Purchase Calculator</h1>
         <p class="subtitle">
           Calculate mortgage affordability and cash requirements for your
           Scottish property purchase
@@ -61,7 +61,12 @@
           >
             <span id="js-themeIcon">🌙</span>
           </button>
-          <button type="button" class="reset-button" id="js-resetButton">
+          <button
+            type="button"
+            class="reset-button"
+            id="js-resetButton"
+            aria-label="Reset all inputs to default values"
+          >
             Reset to Defaults
           </button>
         </div>
@@ -70,7 +75,7 @@
       <div class="calculator-grid">
         <!-- Property Being Purchased -->
         <div class="card">
-          <h2>Property Being Purchased</h2>
+          <h2 class="card-title">Property Being Purchased</h2>
           <div class="form-group">
             <label for="js-homeReportValue">Home Report Value</label>
             <div class="input-prefix">
@@ -123,7 +128,7 @@
 
         <!-- Existing Property Being Sold -->
         <div class="card">
-          <h2>Existing Property Being Sold</h2>
+          <h2 class="card-title">Existing Property Being Sold</h2>
           <div class="form-group">
             <label for="js-expectedSaleValue">Expected Sale Value</label>
             <div class="input-prefix">
@@ -176,7 +181,7 @@
 
         <!-- Available Funds -->
         <div class="card">
-          <h2>Available Funds</h2>
+          <h2 class="card-title">Available Funds</h2>
           <div class="form-group">
             <label for="js-cashAvailable">Cash Available</label>
             <div class="input-prefix">
@@ -192,7 +197,7 @@
 
         <!-- New Mortgage Parameters -->
         <div class="card">
-          <h2>New Mortgage Parameters</h2>
+          <h2 class="card-title">New Mortgage Parameters</h2>
           <div class="form-group">
             <label for="js-interestRate">Interest Rate</label>
             <div class="input-suffix" data-suffix="%">
@@ -221,9 +226,9 @@
 
         <!-- Results Section -->
         <div class="card results-section">
-          <h2>Results</h2>
+          <h2 class="card-title">Results</h2>
 
-          <div class="section-heading">Primary Outputs</div>
+          <h3 class="section-heading">Primary Outputs</h3>
           <div class="results-grid">
             <div class="result-item">
               <div class="result-label">Monthly Mortgage Payment</div>
@@ -252,7 +257,7 @@
             </div>
           </div>
 
-          <div class="section-heading">Supporting Information</div>
+          <h3 class="section-heading">Supporting Information</h3>
           <div class="results-grid">
             <div class="result-item">
               <div class="result-label">LBTT</div>
@@ -290,6 +295,18 @@
                 id="js-overbidPercentageDesc"
               ></div>
             </div>
+          </div>
+
+          <div class="share-section">
+            <button
+              id="js-copyUrlButton"
+              class="copy-url-button"
+              type="button"
+              aria-label="Copy current URL with all settings to clipboard for sharing"
+            >
+              <span id="js-copyUrlIcon" aria-hidden="true">🔗</span>
+              <span id="js-copyUrlText">Copy URL to Share</span>
+            </button>
           </div>
         </div>
       </div>

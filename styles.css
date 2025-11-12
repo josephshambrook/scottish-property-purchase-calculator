@@ -42,6 +42,7 @@ body {
     Arial, sans-serif;
   background-color: var(--background);
   color: var(--text-primary);
+  font-size: 16px;
   line-height: 1.6;
   padding: 2rem 1rem;
   transition:
@@ -60,7 +61,7 @@ header {
   position: relative;
 }
 
-h1 {
+.page-title {
   color: var(--primary-color);
   font-size: 2rem;
   font-weight: 700;
@@ -104,6 +105,11 @@ h1 {
   transform: translateY(0);
 }
 
+.reset-button:focus-visible {
+  outline: 3px solid var(--error);
+  outline-offset: 2px;
+}
+
 .theme-toggle {
   background-color: var(--primary-color);
   color: white;
@@ -130,6 +136,11 @@ h1 {
 
 .theme-toggle:active {
   transform: translateY(0);
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 @media (max-width: 968px) {
@@ -163,7 +174,7 @@ h1 {
     box-shadow 0.3s ease;
 }
 
-.card h2 {
+.card-title {
   color: var(--primary-color);
   font-size: 1.25rem;
   margin-bottom: 1.5rem;
@@ -200,7 +211,12 @@ input[type='number'] {
 input[type='number']:focus {
   outline: none;
   border-color: var(--secondary-color);
-  box-shadow: 0 0 0 3px rgba(74, 123, 167, 0.1);
+  box-shadow: 0 0 0 3px rgba(74, 123, 167, 0.3);
+}
+
+input[type='number']:focus-visible {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 2px;
 }
 
 .toggle-group {
@@ -300,7 +316,7 @@ input:checked + .slider:before {
 }
 
 .result-description {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
   font-family: 'Monaco', 'Courier New', monospace;
@@ -410,4 +426,70 @@ input:checked + .slider:before {
 
 .footer-disclaimer strong {
   color: var(--text-primary);
+}
+
+/* Share Section */
+.share-section {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 2px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.copy-url-button {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: white;
+  border: none;
+  padding: 1.25rem 2.5rem;
+  border-radius: 12px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    all 0.3s ease,
+    transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 240px;
+}
+
+.copy-url-button:hover {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color),
+    var(--primary-color)
+  );
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.copy-url-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.copy-url-button.copied {
+  background: linear-gradient(135deg, var(--success), #38a169);
+}
+
+.copy-url-button:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
+}
+
+.copy-url-button span {
+  line-height: 1;
+}
+
+.copy-url-button span:first-child {
+  font-size: 1.25rem;
 }

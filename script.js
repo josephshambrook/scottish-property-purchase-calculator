@@ -494,6 +494,49 @@ function calculateAll() {
   saveValues();
 }
 
+// Copy current URL to clipboard
+function copyUrlToClipboard() {
+  const url = window.location.href;
+  const button = getElement('js-copyUrlButton');
+  const iconElement = getElement('js-copyUrlIcon');
+  const textElement = getElement('js-copyUrlText');
+
+  // Use the modern Clipboard API
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      // Show success feedback
+      button.classList.add('copied');
+      button.setAttribute('aria-label', 'URL copied to clipboard successfully');
+      iconElement.textContent = '✓';
+      textElement.textContent = 'URL Copied!';
+
+      // Reset button after 2 seconds
+      setTimeout(() => {
+        button.classList.remove('copied');
+        button.setAttribute(
+          'aria-label',
+          'Copy current URL with all settings to clipboard for sharing'
+        );
+        iconElement.textContent = '🔗';
+        textElement.textContent = 'Copy URL to Share';
+      }, 2000);
+    })
+    .catch((err) => {
+      console.error('Failed to copy URL:', err);
+      // Fallback feedback
+      button.setAttribute('aria-label', 'Failed to copy URL to clipboard');
+      textElement.textContent = 'Failed to copy';
+      setTimeout(() => {
+        button.setAttribute(
+          'aria-label',
+          'Copy current URL with all settings to clipboard for sharing'
+        );
+        textElement.textContent = 'Copy URL to Share';
+      }, 2000);
+    });
+}
+
 // Initialize the calculator
 function init() {
   // Migrate data from localStorage to query string if needed
@@ -538,6 +581,9 @@ function init() {
 
   // Add reset button listener
   getElement('js-resetButton').addEventListener('click', resetToDefaults);
+
+  // Add copy URL button listener
+  getElement('js-copyUrlButton').addEventListener('click', copyUrlToClipboard);
 
   // Initial calculation
   calculateAll();
