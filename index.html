@@ -190,6 +190,19 @@
                 id="js-cashAvailable"
                 step="1000"
                 value="20000"
+                min="0"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="js-cashTowardsProperty">Cash Towards Property</label>
+            <div class="input-prefix">
+              <input
+                type="number"
+                id="js-cashTowardsProperty"
+                step="1000"
+                value="20000"
+                min="0"
               />
             </div>
           </div>
@@ -254,6 +267,11 @@
               <div class="result-label">Total Amount Borrowed</div>
               <div class="result-value" id="js-mortgageAmount">£0.00</div>
               <div class="result-description" id="js-mortgageAmountDesc"></div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Cash Left After Purchase</div>
+              <div class="result-value" id="js-cashLeftAfterPurchase">£0.00</div>
+              <div class="result-description" id="js-cashLeftAfterPurchaseDesc"></div>
             </div>
           </div>
 

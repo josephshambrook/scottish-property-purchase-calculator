@@ -9,6 +9,7 @@ const DEFAULT_VALUES = {
   sellingSolicitorFeesUpfront: 500,
   sellingSolicitorFeesAtSale: 1500,
   cashAvailable: 20000,
+  cashTowardsProperty: 20000,
   interestRate: 4.5,
   mortgageTerm: 25,
 };
@@ -27,6 +28,7 @@ const PARAM_MAP = {
   sellingSolicitorFeesUpfront: 'ssfu',
   sellingSolicitorFeesAtSale: 'ssfs',
   cashAvailable: 'cash',
+  cashTowardsProperty: 'ctp',
   interestRate: 'ir',
   mortgageTerm: 'mt',
 };
@@ -142,7 +144,17 @@ function loadValues() {
 
   // If we have query params, use them (merged with defaults)
   if (hasQueryParams) {
-    return { ...DEFAULT_VALUES, ...values };
+    const mergedValues = { ...DEFAULT_VALUES, ...values };
+
+    // Migrate old query params: if cashAvailable exists but not the new field
+    if (
+      values.cashAvailable !== undefined &&
+      values.cashTowardsProperty === undefined
+    ) {
+      mergedValues.cashTowardsProperty = values.cashAvailable;
+    }
+
+    return mergedValues;
   }
 
   // Otherwise, check localStorage for migration
@@ -159,6 +171,14 @@ function loadValues() {
         parsed.sellingSolicitorFeesUpfront = 500;
         parsed.sellingSolicitorFeesAtSale = parsed.sellingSolicitorFees;
         delete parsed.sellingSolicitorFees;
+      }
+
+      // Migrate old data format: set cashTowardsProperty from cashAvailable if not present
+      if (
+        parsed.cashAvailable !== undefined &&
+        parsed.cashTowardsProperty === undefined
+      ) {
+        parsed.cashTowardsProperty = parsed.cashAvailable;
       }
 
       // Ensure all default values exist
@@ -186,6 +206,7 @@ function saveValues() {
     ),
     sellingSolicitorFeesAtSale: getInputValue('js-sellingSolicitorFeesAtSale'),
     cashAvailable: getInputValue('js-cashAvailable'),
+    cashTowardsProperty: getInputValue('js-cashTowardsProperty'),
     interestRate: getInputValue('js-interestRate'),
     mortgageTerm: getInputValue('js-mortgageTerm'),
   };
@@ -245,6 +266,14 @@ function migrateFromLocalStorage() {
           parsed.sellingSolicitorFeesUpfront = 500;
           parsed.sellingSolicitorFeesAtSale = parsed.sellingSolicitorFees;
           delete parsed.sellingSolicitorFees;
+        }
+
+        // Migrate old data format: set cashTowardsProperty from cashAvailable if not present
+        if (
+          parsed.cashAvailable !== undefined &&
+          parsed.cashTowardsProperty === undefined
+        ) {
+          parsed.cashTowardsProperty = parsed.cashAvailable;
         }
 
         // Build query string from localStorage data
@@ -349,8 +378,25 @@ function toggleTheme() {
   applyTheme(newTheme, true);
 }
 
+// Validation function for cash towards property
+function validateCashTowardsProperty() {
+  const cashAvailable = getInputValue('js-cashAvailable');
+  const cashTowardsProperty = getInputValue('js-cashTowardsProperty');
+
+  // If cash towards property exceeds cash available, cap it at cash available
+  if (cashTowardsProperty > cashAvailable) {
+    getElement('js-cashTowardsProperty').value = cashAvailable;
+  }
+
+  // Update max attribute to prevent exceeding cash available
+  getElement('js-cashTowardsProperty').setAttribute('max', cashAvailable);
+}
+
 // Main calculation function
 function calculateAll() {
+  // Validate cash towards property first
+  validateCashTowardsProperty();
+
   // Get all input values (optimized with helper function)
   const homeReportValue = getInputValue('js-homeReportValue');
   const bidAmount = getInputValue('js-bidAmount');
@@ -369,6 +415,7 @@ function calculateAll() {
     'js-sellingSolicitorFeesAtSale'
   );
   const cashAvailable = getInputValue('js-cashAvailable');
+  const cashTowardsProperty = getInputValue('js-cashTowardsProperty');
   const interestRate = getInputValue('js-interestRate');
   const mortgageTerm = getInputValue('js-mortgageTerm');
 
@@ -388,8 +435,8 @@ function calculateAll() {
   const equityFromSale =
     expectedSaleValue - existingMortgage - sellingSolicitorFeesAtSale;
 
-  // 5. Calculate total funds available after sale
-  const totalFundsAfterSale = cashAvailable + equityFromSale;
+  // 5. Calculate total funds available after sale (using cash towards property, not total cash)
+  const totalFundsAfterSale = cashTowardsProperty + equityFromSale;
 
   // 6. Calculate available for deposit (use all remaining funds after costs)
   const availableForDeposit =
@@ -419,13 +466,8 @@ function calculateAll() {
       ? ((bidAmount - homeReportValue) / homeReportValue) * 100
       : 0;
 
-  // 11. Calculate remaining cash after purchase (should be 0 if using all available)
-  const remainingCash =
-    totalFundsAfterSale -
-    cashUsedBeforePurchase -
-    requiredDeposit -
-    lbtt -
-    buyingSolicitorFeesAtSale;
+  // 11. Calculate cash left after purchase
+  const cashLeftAfterPurchase = cashAvailable - cashTowardsProperty;
 
   // Batch DOM updates using requestAnimationFrame to minimize reflows
   requestAnimationFrame(() => {
@@ -454,6 +496,12 @@ function calculateAll() {
     );
 
     setOutput(
+      'js-cashLeftAfterPurchase',
+      formatCurrency(cashLeftAfterPurchase),
+      `${formatCurrency(cashAvailable)} (cash available) - ${formatCurrency(cashTowardsProperty)} (cash towards property)`
+    );
+
+    setOutput(
       'js-lbtt',
       formatCurrency(lbtt),
       `Calculated on ${formatCurrency(bidAmount)} using Scottish LBTT bands`
@@ -468,7 +516,7 @@ function calculateAll() {
     setOutput(
       'js-totalFundsAfterSale',
       formatCurrency(totalFundsAfterSale),
-      `${formatCurrency(cashAvailable)} (cash) + ${formatCurrency(equityFromSale)} (equity from sale)`
+      `${formatCurrency(cashTowardsProperty)} (cash towards property) + ${formatCurrency(equityFromSale)} (equity from sale)`
     );
 
     setOutput(
