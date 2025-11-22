@@ -493,3 +493,178 @@ input:checked + .slider:before {
 .copy-url-button span:first-child {
   font-size: 1.25rem;
 }
+
+/* Print Styles */
+@media print {
+  /* Force black and white for printing */
+  :root {
+    --primary-color: #000000;
+    --secondary-color: #000000;
+    --background: #ffffff;
+    --card-background: #ffffff;
+    --border: #000000;
+    --text-primary: #000000;
+    --text-secondary: #000000;
+    --success: #000000;
+    --warning: #000000;
+    --error: #000000;
+    --input-background: #ffffff;
+    --shadow: none;
+    --result-description-bg: #f0f0f0;
+  }
+
+  /* Override dark theme */
+  [data-theme='dark'] {
+    --primary-color: #000000;
+    --secondary-color: #000000;
+    --background: #ffffff;
+    --card-background: #ffffff;
+    --border: #000000;
+    --text-primary: #000000;
+    --text-secondary: #000000;
+    --success: #000000;
+    --warning: #000000;
+    --error: #000000;
+    --input-background: #ffffff;
+    --shadow: none;
+    --result-description-bg: #f0f0f0;
+  }
+
+  /* Hide interactive elements */
+  .header-buttons,
+  .share-section {
+    display: none !important;
+  }
+
+  /* Reset background and remove transitions */
+  body {
+    background: white;
+    padding: 1rem;
+    font-size: 12pt;
+  }
+
+  * {
+    transition: none !important;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  /* Card styling for print - minimal borders */
+  .card {
+    box-shadow: none;
+    border: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #ccc;
+  }
+
+  /* Compact form layout - labels and inputs inline */
+  .form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    min-width: 120px;
+  }
+
+  .input-prefix,
+  .input-suffix {
+    flex: 1;
+    max-width: 150px;
+  }
+
+  input[type='number'] {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .input-prefix input {
+    padding-left: 1.25rem;
+  }
+
+  .input-prefix::before {
+    left: 8px;
+    font-size: 0.85rem;
+  }
+
+  .input-suffix::after {
+    right: 8px;
+    font-size: 0.85rem;
+  }
+
+  /* Two column layout for input cards to save space */
+  .calculator-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1.5rem;
+  }
+
+  /* Optimize result grids for print */
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .result-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .result-value {
+    font-size: 1.5rem;
+  }
+
+  /* Header adjustments */
+  header {
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  /* Ensure inputs show their values clearly */
+  input[type='number'] {
+    border: 1px solid #999;
+    background: white;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+
+  /* Make links visible as text */
+  a[href]:after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Footer styling */
+  .footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .footer-disclaimer {
+    font-size: 0.75rem;
+  }
+}
